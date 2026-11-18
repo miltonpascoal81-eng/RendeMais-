@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4A3319">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rende Mais">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src https: data:; connect-src https://fxwqzovfjzpvlmqnppaj.supabase.co; base-uri 'none'; form-action 'none'">
+  <title>Rende Mais - Vendas &amp; Resultados</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.100.0/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --cobre-950: #2E1F0F;
+      --cobre-900: #4A3319;
+      --cobre-800: #65452D;
+      --cobre-700: #7F5539;
+      --cobre-500: #B08968;
+      --cobre-200: #E6D5C3;
+      --cobre-100: #F5EBE0;
+      --cobre-50: #FCF8F5;
+      --ouro: #D4AF37;
+      --ouro-esc: #7A5F00;
+      --fundo: #F9F6F0;
+      --branco: #FFFFFF;
+      --texto: #2B1D0E;
+      --cinza: #6B5A48;
+      --erro: #B3261E;
+      --ok: #1B6E3C;
+      --aviso: #8A5A00;
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    [hidden] { display: none !important; }
+
+    body {
+      background-color: var(--fundo);
+      color: var(--texto);
+      padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.admin { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+    button, input, select, textarea { font: inherit; }
+
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .modal-content:focus-visible {
+      outline: 3px solid var(--ouro);
+      outline-offset: 2px;
+    }
+
+    .oculto-fora { position: fixed; left: -9999px; top: 0; opacity: 0; }
+
+    .ico { width: 22px; height: 22px; }
+
+    /* ---------- Topo ---------- */
+    .topo {
+      background: linear-gradient(90deg, var(--cobre-900), var(--cobre-800), var(--cobre-900));
+      color: var(--branco);
+      border-bottom: 2px solid var(--ouro);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding-top: env(safe-area-inset-top, 0px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .topo-in {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .marca { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+    .marca-selo {
+      flex: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--ouro);
+      background: var(--cobre-950);
+      color: var(--ouro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0.95rem;
+    }
+
+    .marca-nome { font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ouro); line-height: 1.2; }
+    .marca-sub { font-size: 0.64rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cobre-100); }
+
+    .topo-acoes { display: flex; gap: 6px; flex: none; }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(212,175,55,0.5);
+      color: var(--ouro);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .icon-btn:hover { background: rgba(255,255,255,0.24); }
+    .icon-btn.claro { color: var(--texto); background: var(--cobre-100); border-color: var(--cobre-200); }
+
+    /* ---------- Estrutura ---------- */
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+    }
+
+    .tab { display: flex; flex-direction: column; gap: 14px; }
+
+    .bloco {
+      background: var(--branco);
+      border: 1px solid var(--cobre-200);
+      border-radius: 16px;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .bloco-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .bloco-titulo { font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cobre-800); }
+
+    .nota { font-size: 0.8rem; line-height: 1.45; color: var(--cinza); margin-top: 8px; }
+    .vazio { font-size: 0.85rem; line-height: 1.45; color: var(--cinza); padding: 10px 0; }
+
+    /* ---------- Botões ---------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--cobre-900);
+      color: var(--ouro);
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover { background: var(--cobre-800); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-ouro { background: var(--ouro); color: var(--cobre-950); }
+    .btn-ouro:hover { background: #C29F2C; }
+    .btn-sec { background: var(--cobre-100); color: var(--cobre-900); }
+    .btn-sec:hover { background: var(--cobre-200); }
+    .btn-perigo { background: var(--erro); color: var(--branco); }
+    .btn-perigo:hover { background: #8C1D18; }
+    .btn-bloco { width: 100%; }
+
+    .btn-peq {
+      flex: 1 1 0;
+      min-width: 76px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--cobre-200);
+      background: var(--branco);
+      color: var(--texto);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-peq.perigo { color: var(--erro); border-color: #E3B7B3; }
+    .btn-peq:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .linha-botoes { display: flex; gap: 8px; flex-wrap: wrap; }
+    .linha-botoes > * { flex: 1 1 120px; }
+
+    /* ---------- Formulários ---------- */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #CFC1B1;
+      border-radius: 8px;
+      background: var(--branco);
+      color: var(--texto);
+      font-size: 1rem;
+    }
+
+    .form-msg { min-height: 1.2em; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; }
+    .form-msg.erro { color: var(--erro); }
+    .form-msg.ok { color: var(--ok); }
+
+    .prev-imagem { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 0.8rem; line-height: 1.35; color: var(--cinza); }
+    .prev-imagem img { width: 64px; height: 64px; flex: none; object-fit: cover; border-radius: 8px; background: #EEE; }
+
+    /* ---------- Catálogo ---------- */
+    .cat-topo { display: flex; gap: 8px; }
+    .cat-topo input[type="search"] {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #CFC1B1;
+      background: var(--branco);
+      color: var(--texto);
+      font-size: 1rem;
+    }
+
+    .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+
+    .chip {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #D8CBBB;
+      background: var(--branco);
+      color: var(--texto);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .chip.active { background: var(--cobre-900); color: var(--ouro); border-color: var(--cobre-900); }
+
+    .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+
+    .card {
+      background: var(--branco);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(74,51,25,0.10);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .card.oculta { opacity: 0.65; }
+    .card-img-wrapper { position: relative; height: 180px; background: #EEE; }
+    .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .tag-tipo {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      max-width: calc(100% - 24px);
+      padding: 5px 10px;
+      border-radius: 6px;
+      color: var(--branco);
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tag-fisico { background: #00796B; }
+    .tag-digital { background: #3F51B5; }
+
+    .tag-oculta {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #444;
+      color: var(--branco);
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .card-body { padding: 16px; display: flex; flex-direction: column; flex-grow: 1; }
+    .categoria { font-size: 0.72rem; font-weight: 800; color: var(--ouro-esc); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+    .titulo { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; overflow-wrap: anywhere; }
+    .descricao { font-size: 0.85rem; color: var(--cinza); margin-bottom: 16px; line-height: 1.4; flex-grow: 1; overflow-wrap: anywhere; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid #F0E6DA; padding-top: 12px; }
+    .preco { font-size: 1.2rem; font-weight: 900; color: var(--cobre-800); }
+    .admin-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #E2D6D6; }
+    .aviso-afiliado { font-size: 0.78rem; line-height: 1.4; color: var(--cinza); text-align: center; padding: 4px 8px; }
+
+    .status-msg { text-align: center; padding: 40px 16px; color: var(--cinza); grid-column: 1 / -1; }
+    .status-msg .btn { margin-top: 12px; }
+
+    /* ---------- Painel ---------- */
+    .painel-cartao {
+      background: linear-gradient(135deg, var(--cobre-900), var(--cobre-800));
+      color: var(--branco);
+      border: 1px solid rgba(212,175,55,0.45);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .rotulo { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cobre-200); }
+    .valor-grande { font-size: 1.9rem; font-weight: 800; color: var(--ouro); margin-top: 2px; overflow-wrap: anywhere; }
+    .sub { font-size: 0.8rem; color: var(--cobre-200); margin-top: 2px; min-height: 1.1em; }
+
+    .painel-linha {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(230,213,195,0.3);
+    }
+
+    .painel-linha .mini { display: block; font-size: 0.68rem; color: var(--cobre-200); margin-bottom: 2px; }
+    .painel-linha strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+    .moeda-linha { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .seg { display: inline-flex; border: 1px solid var(--cobre-500); border-radius: 10px; overflow: hidden; }
+    .seg-btn { padding: 8px 16px; border: 0; background: var(--branco); color: var(--cobre-800); font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+    .seg-btn.ativo { background: var(--cobre-900); color: var(--ouro); }
+    .cambio { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--cinza); }
+    .cambio input { width: 84px; padding: 8px; border: 1px solid #CFC1B1; border-radius: 8px; background: var(--branco); color: var(--texto); font-size: 0.95rem; }
+    .atalhos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ---------- Listas ---------- */
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 0;
+      border: 0;
+      border-bottom: 1px solid #F0E6DA;
+      background: transparent;
+      color: var(--texto);
+      text-align: left;
+    }
+
+    .item:last-child { border-bottom: 0; }
+    button.item { cursor: pointer; }
+    .item-corpo { min-width: 0; flex: 1; }
+    .item-titulo { display: block; font-size: 0.9rem; font-weight: 700; overflow-wrap: anywhere; }
+    .item-sub { display: block; font-size: 0.75rem; color: var(--cinza); margin-top: 2px; overflow-wrap: anywhere; }
+    .item-dir { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+    .valor { font-size: 0.9rem; font-weight: 800; color: var(--ok); font-variant-numeric: tabular-nums; }
+    .item-linha { align-items: flex-start; flex-direction: column; }
+    .item-acoes { display: flex; gap: 8px; width: 100%; }
+    .url-curta { display: block; margin-top: 4px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.74rem; color: var(--cobre-800); overflow-wrap: anywhere; background: var(--cobre-50); border-radius: 6px; padding: 4px 6px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge.pendente, .badge.pedido, .badge.por_pedir { background: #FFF1CC; color: var(--aviso); }
+    .badge.confirmada, .badge.aprovado { background: #DDF3E4; color: var(--ok); }
+    .badge.cancelada, .badge.recusado { background: #ECE6DF; color: var(--cinza); }
+
+    textarea.saida { width: 100%; padding: 10px; border: 1px solid #CFC1B1; border-radius: 8px; background: var(--cobre-50); color: var(--texto); font-size: 0.92rem; line-height: 1.5; margin-bottom: 10px; resize: vertical; }
+
+    .sugestoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .sugestoes .chip { padding: 5px 10px; font-size: 0.78rem; }
+
+    /* ---------- Rodapé e navegação ---------- */
+    .rodape { text-align: center; padding: 14px 16px 0; }
+    .link-btn { background: none; border: 0; color: var(--cobre-700); text-decoration: underline; font-size: 0.8rem; cursor: pointer; }
+
+    .nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 90;
+      background: var(--cobre-950);
+      border-top: 1px solid rgba(212,175,55,0.35);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .nav-in {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      padding: 6px max(8px, env(safe-area-inset-right, 0px)) 6px max(8px, env(safe-area-inset-left, 0px));
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 4px;
+      background: none;
+      border: 0;
+      color: var(--cobre-500);
+      font-size: 0.68rem;
+      cursor: pointer;
+    }
+
+    .nav-btn.ativo { color: var(--ouro); font-weight: 700; }
+
+    /* ---------- Janelas ---------- */
+    .modal {
+      display: flex;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    }
+
+    .modal-content {
+      background: var(--branco);
+      width: 95%;
+      max-width: 500px;
+      border-radius: 16px;
+      padding: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #EEE; padding-bottom: 10px; gap: 8px; }
+    .texto-modal { margin-bottom: 12px; line-height: 1.5; font-size: 0.92rem; }
+    .texto-modal p + p { margin-top: 8px; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+      background: var(--cobre-950);
+      color: var(--branco);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      z-index: 300;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .ecra-central {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+      color: var(--cobre-900);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-caixa" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M12 11v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-texto" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5zM8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pessoas" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5a3 3 0 0 1 0 6M18 14c2 .6 3 2.6 3 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <!-- Ecrã de passagem dos links curtos -->
+  <div class="ecra-central" id="ecraRedirecionar" hidden>
+    <p id="txtRedirecionar">A abrir a oferta...</p>
+    <a class="btn" id="lnkVoltar" href="./" hidden>Ver ofertas</a>
+  </div>
+
+  <div id="app">
+    <header class="topo">
+      <div class="topo-in">
+        <div class="marca">
+          <div class="marca-selo">RM</div>
+          <div>
+            <h1 class="marca-nome">Rende Mais</h1>
+            <p class="marca-sub">Vendas &amp; Resultados</p>
+          </div>
+        </div>
+        <div class="topo-acoes">
+          <button type="button" class="icon-btn" id="btnAtualizar" aria-label="Atualizar">↻</button>
+          <button type="button" class="icon-btn" id="btnAdmin">Entrar</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+
+      <!-- INÍCIO (só administrador) -->
+      <section class="tab" id="tab-inicio" hidden>
+        <div class="painel-cartao">
+          <p class="rotulo">Comissões confirmadas</p>
+          <p class="valor-grande" id="pnComissoes">—</p>
+          <p class="sub" id="pnPendentes"></p>
+          <div class="painel-linha">
+            <div><span class="mini">Cliques (total)</span><strong id="pnCliques">0</strong></div>
+            <div><span class="mini">Últimos 7 dias</span><strong id="pnCliques7">—</strong></div>
+            <div><span class="mini">Vendas confirmadas</span><strong id="pnVendas">0</strong></div>
+          </div>
+        </div>
+
+        <div class="moeda-linha">
+          <div class="seg" role="group" aria-label="Moeda">
+            <button type="button" class="seg-btn ativo" data-moeda="AOA" aria-pressed="true">Kz</button>
+            <button type="button" class="seg-btn" data-moeda="USD" aria-pressed="false">USD</button>
+          </div>
+          <label class="cambio" for="inCambio">
+            <span>1 USD =</span>
+            <input type="number" id="inCambio" min="0" step="any" inputmode="decimal" placeholder="Kz">
+            <span>Kz</span>
+          </label>
+        </div>
+        <p class="nota" id="pnNotaCambio" hidden>* Indica quantos Kz valem 1 USD para somar as duas moedas.</p>
+
+        <div class="atalhos">
+          <button type="button" class="btn btn-ouro" id="btnNovaVenda">Registar venda</button>
+          <button type="button" class="btn btn-sec" data-ir="links">Criar link</button>
+        </div>
+
+        <div class="bloco">
+          <h2 class="bloco-titulo">Últimas vendas registadas</h2>
+          <div id="listaVendas"></div>
+        </div>
+
+        <div class="bloco">
+          <h2 class="bloco-titulo">Ofertas mais clicadas</h2>
+          <div id="listaTop"></div>
+        </div>
+      </section>
+
+      <!-- CATÁLOGO (público) -->
+      <section class="tab" id="tab-catalogo">
+        <div class="cat-topo">
+          <input type="search" id="campoBusca" aria-label="Pesquisar ofertas" placeholder="Pesquisar produtos, cursos, categorias..." autocomplete="off">
+          <button type="button" class="btn btn-ouro" id="btnNovaOferta" hidden>+ Oferta</button>
+        </div>
+        <div class="filters" role="group" aria-label="Filtrar por tipo">
+          <button type="button" class="chip active" data-tipo="todos" aria-pressed="true">Todos</button>
+          <button type="button" class="chip" data-tipo="fisico" aria-pressed="false">Produtos Físicos</button>
+          <button type="button" class="chip" data-tipo="digital" aria-pressed="false">Infoprodutos</button>
+        </div>
+        <div class="container" id="listaOfertas" aria-live="polite"></div>
+        <p class="aviso-afiliado">Alguns links são de afiliado: posso receber uma comissão se comprares por eles, sem custo extra para ti.</p>
+      </section>
+
+      <!-- LINKS (só administrador) -->
+      <section class="tab" id="tab-links" hidden>
+        <div class="bloco">
+          <h2 class="bloco-titulo">Criar link com rastreio</h2>
+          <form id="formLink" novalidate>
+            <div class="form-group">
+              <label for="lk_oferta">Destino</label>
+              <select id="lk_oferta"></select>
+            </div>
+            <div class="form-group" id="grpLkUrl" hidden>
+              <label for="lk_url">Endereço de destino</label>
+              <input type="url" id="lk_url" inputmode="url" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label for="lk_campanha">Nome da campanha</label>
+              <input type="text" id="lk_campanha" maxlength="60" placeholder="ex: grupo-vendas-luanda">
+            </div>
+            <div class="form-group">
+              <label for="lk_canal">Canal</label>
+              <select id="lk_canal">
+                <option value="whatsapp">WhatsApp</option>
+                <option value="facebook">Facebook</option>
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+                <option value="telegram">Telegram</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="form-msg" id="msgLink" role="status"></div>
+            <button type="submit" class="btn btn-bloco" id="btnCriarLink">Criar link</button>
+          </form>
+          <p class="nota">O link curto abre a Rende Mais, regista o clique e leva a pessoa à loja. Assim vês quantos cliques cada grupo ou canal traz.</p>
+        </div>
+        <div class="bloco">
+          <h2 class="bloco-titulo">Os teus links</h2>
+          <div id="listaLinks"></div>
+        </div>
+      </section>
+
+      <!-- TEXTOS (só administrador) -->
+      <section class="tab" id="tab-textos" hidden>
+        <div class="bloco">
+          <h2 class="bloco-titulo">Gerador de textos</h2>
+          <div class="form-group">
+            <label for="tx_oferta">Produto</label>
+            <select id="tx_oferta"></select>
+          </div>
+          <div id="grpTxManual">
+            <div class="form-group">
+              <label for="tx_titulo">Nome do produto</label>
+              <input type="text" id="tx_titulo" maxlength="120" placeholder="ex: Curso de Inglês Expresso">
+            </div>
+            <div class="form-group">
+              <label for="tx_preco">Preço em Kz (opcional)</label>
+              <input type="number" id="tx_preco" min="0" step="any" inputmode="decimal">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="tx_canal">Onde vais partilhar?</label>
+            <select id="tx_canal">
+              <option value="whatsapp">WhatsApp (Estado e grupos)</option>
+              <option value="telegram">Telegram</option>
+              <option value="facebook">Facebook</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tx_estilo">Tipo de texto</label>
+            <select id="tx_estilo">
+              <option value="oferta">Oferta direta</option>
+              <option value="dica">Dica útil</option>
+              <option value="pergunta">Pergunta ao público</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tx_link">Link a usar</label>
+            <select id="tx_link"></select>
+          </div>
+          <button type="button" class="btn btn-bloco" id="btnGerarTexto">Criar texto</button>
+          <p class="nota">Os textos são modelos preenchidos com os dados da oferta e não usam inteligência artificial. Revê sempre preço e condições antes de publicar. Para saber quantos cliques cada canal traz, usa um link criado na aba Links.</p>
+        </div>
+        <div class="bloco" id="boxTexto" hidden>
+          <h2 class="bloco-titulo">Texto pronto a copiar</h2>
+          <textarea class="saida" id="txSaida" rows="10" aria-label="Texto gerado"></textarea>
+          <div class="linha-botoes">
+            <button type="button" class="btn" id="btnCopiarTexto">Copiar texto</button>
+            <button type="button" class="btn btn-sec" id="btnOutraVersao">Outra versão</button>
+          </div>
+          <button type="button" class="btn btn-sec btn-bloco" id="btnCopiarLinkTx" style="margin-top:8px">Copiar só o link</button>
+        </div>
+      </section>
+
+      <!-- PARCEIROS (só administrador) -->
+      <section class="tab" id="tab-parceiros" hidden>
+        <div class="bloco">
+          <div class="bloco-cab">
+            <h2 class="bloco-titulo">Plataformas de afiliados</h2>
+            <button type="button" class="btn btn-ouro" id="btnNovaPlataforma">+ Adicionar</button>
+          </div>
+          <p class="nota" style="margin-top:0;margin-bottom:6px">Acompanha em que plataformas já pediste afiliação. A aprovação e o pagamento das comissões são feitos por cada plataforma.</p>
+          <div id="listaPlataformas"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="rodape">
+      <button type="button" class="link-btn" id="btnAviso">Aviso de afiliado e privacidade</button>
+    </footer>
+
+    <nav class="nav" id="navInferior" aria-label="Menu principal" hidden>
+      <div class="nav-in">
+        <button type="button" class="nav-btn" data-tab="inicio"><svg class="ico" aria-hidden="true"><use href="#i-casa"/></svg><span>Início</span></button>
+        <button type="button" class="nav-btn ativo" data-tab="catalogo"><svg class="ico" aria-hidden="true"><use href="#i-caixa"/></svg><span>Catálogo</span></button>
+        <button type="button" class="nav-btn" data-tab="links"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg><span>Links</span></button>
+        <button type="button" class="nav-btn" data-tab="textos"><svg class="ico" aria-hidden="true"><use href="#i-texto"/></svg><span>Textos</span></button>
+        <button type="button" class="nav-btn" data-tab="parceiros"><svg class="ico" aria-hidden="true"><use href="#i-pessoas"/></svg><span>Parceiros</span></button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Entrar como administrador -->
+  <div class="modal" id="modalLogin" role="dialog" aria-modal="true" aria-labelledby="tituloLogin" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloLogin">Entrar como administrador</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalLogin" aria-label="Fechar">✕</button>
+      </div>
+      <form id="formLogin" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="loginSenha">Palavra-passe</label>
+          <input type="password" id="loginSenha" autocomplete="current-password" required>
+        </div>
+        <div class="form-msg" id="msgLogin" role="status"></div>
+        <button type="submit" class="btn btn-bloco" id="btnEntrar">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Oferta (nova ou editar) -->
+  <div class="modal" id="modalOferta" role="dialog" aria-modal="true" aria-labelledby="tituloOferta" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloOferta">Nova Oferta na Vitrine</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalOferta" aria-label="Fechar">✕</button>
+      </div>
+      <form id="formOferta" novalidate>
+        <div class="form-group">
+          <label for="of_titulo">Título do Produto / Curso *</label>
+          <input type="text" id="of_titulo" maxlength="120" required>
+        </div>
+        <div class="form-group">
+          <label for="of_descricao">Descrição curta</label>
+          <textarea id="of_descricao" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="of_preco">Preço em Kwanzas (Ex: 14500) *</label>
+          <input type="number" id="of_preco" min="0" step="any" inputmode="decimal" required>
+        </div>
+        <div class="form-group">
+          <label for="of_tipo">Tipo de Oferta *</label>
+          <select id="of_tipo">
+            <option value="fisico">Produto Físico</option>
+            <option value="digital">Infoproduto / Digital</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="of_categoria">Categoria (Ex: Tecnologia, Renda Extra) *</label>
+          <input type="text" id="of_categoria" value="Tecnologia" maxlength="60" required>
+        </div>
+        <div class="form-group">
+          <label for="of_plataforma">Plataforma (Ex: COMPRAR.ao, Hotmart) *</label>
+          <input type="text" id="of_plataforma" value="COMPRAR.ao" maxlength="60" required>
+        </div>
+        <div class="form-group">
+          <label for="of_imagem">Link da Imagem (URL da foto) *</label>
+          <input type="url" id="of_imagem" inputmode="url" required>
+          <div class="prev-imagem" id="prevImagem" hidden>
+            <img id="prevImg" alt="">
+            <span id="prevTexto"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="of_link">O seu Link de Afiliado *</label>
+          <input type="url" id="of_link" inputmode="url" required>
+        </div>
+        <div class="form-msg" id="msgOferta" role="status"></div>
+        <button type="submit" class="btn btn-bloco" id="btnPublicar">Publicar Oferta</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Venda (nova ou editar) -->
+  <div class="modal" id="modalVenda" role="dialog" aria-modal="true" aria-labelledby="tituloVenda" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloVenda">Registar venda</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalVenda" aria-label="Fechar">✕</button>
+      </div>
+      <form id="formVenda" novalidate>
+        <div class="form-group">
+          <label for="vd_oferta">Oferta (opcional)</label>
+          <select id="vd_oferta"></select>
+        </div>
+        <div class="form-group">
+          <label for="vd_descricao">Produto *</label>
+          <input type="text" id="vd_descricao" maxlength="120" required>
+        </div>
+        <div class="form-group">
+          <label for="vd_plataforma">Plataforma *</label>
+          <input type="text" id="vd_plataforma" maxlength="60" required>
+        </div>
+        <div class="form-group">
+          <label for="vd_comissao">Comissão recebida ou a receber *</label>
+          <input type="number" id="vd_comissao" min="0" step="any" inputmode="decimal" required>
+        </div>
+        <div class="form-group">
+          <label for="vd_moeda">Moeda</label>
+          <select id="vd_moeda">
+            <option value="AOA">Kwanzas (Kz)</option>
+            <option value="USD">Dólares (USD)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="vd_estado">Estado</label>
+          <select id="vd_estado">
+            <option value="pendente">Pendente</option>
+            <option value="confirmada">Confirmada</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="vd_data">Data da venda</label>
+          <input type="date" id="vd_data" required>
+        </div>
+        <div class="form-msg" id="msgVenda" role="status"></div>
+        <div class="linha-botoes">
+          <button type="submit" class="btn" id="btnGuardarVenda">Guardar venda</button>
+          <button type="button" class="btn btn-perigo" id="btnRemoverVenda" hidden>Remover</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Plataforma (nova ou editar) -->
+  <div class="modal" id="modalPlataforma" role="dialog" aria-modal="true" aria-labelledby="tituloPlataforma" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloPlataforma">Adicionar plataforma</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalPlataforma" aria-label="Fechar">✕</button>
+      </div>
+      <form id="formPlataforma" novalidate>
+        <div class="form-group">
+          <label for="pl_nome">Nome *</label>
+          <input type="text" id="pl_nome" maxlength="60" required>
+          <div class="sugestoes" id="sugestoesPlat"></div>
+        </div>
+        <div class="form-group">
+          <label for="pl_estado">Estado do pedido</label>
+          <select id="pl_estado">
+            <option value="por_pedir">Por pedir</option>
+            <option value="pedido">Pedido enviado</option>
+            <option value="aprovado">Aprovado</option>
+            <option value="recusado">Recusado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pl_comissao">Comissão (como a plataforma indica)</label>
+          <input type="text" id="pl_comissao" maxlength="80" placeholder="ex: até 5% por venda">
+        </div>
+        <div class="form-group">
+          <label for="pl_link">Link para te registares</label>
+          <input type="url" id="pl_link" inputmode="url" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label for="pl_notas">Notas</label>
+          <textarea id="pl_notas" rows="3" maxlength="500" placeholder="prazo de pagamento, valor mínimo, regras de divulgação..."></textarea>
+        </div>
+        <div class="form-msg" id="msgPlataforma" role="status"></div>
+        <button type="submit" class="btn btn-bloco" id="btnGuardarPlataforma">Guardar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmar remoção -->
+  <div class="modal" id="modalConfirmar" role="dialog" aria-modal="true" aria-labelledby="tituloConfirmar" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloConfirmar">Remover?</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalConfirmar" aria-label="Fechar">✕</button>
+      </div>
+      <p class="texto-modal" id="textoConfirmar"></p>
+      <div class="form-msg" id="msgConfirmar" role="status"></div>
+      <div class="linha-botoes">
+        <button type="button" class="btn btn-sec" data-fechar="modalConfirmar">Cancelar</button>
+        <button type="button" class="btn btn-perigo" id="btnConfirmar">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aviso de afiliado e privacidade -->
+  <div class="modal" id="modalAviso" role="dialog" aria-modal="true" aria-labelledby="tituloAviso" hidden>
+    <div class="modal-content" tabindex="-1">
+      <div class="modal-header">
+        <h3 id="tituloAviso">Aviso de afiliado e privacidade</h3>
+        <button type="button" class="icon-btn claro" data-fechar="modalAviso" aria-label="Fechar">✕</button>
+      </div>
+      <div class="texto-modal">
+        <p><strong>Como funciona.</strong> A Rende Mais mostra ofertas de lojas e plataformas parceiras. Ao tocar em "Aproveitar" vais para o site da loja, onde fazes a compra. Preço, entrega e garantia são da loja.</p>
+        <p><strong>Comissões.</strong> Alguns links são de afiliado. Se comprares por eles, o administrador da Rende Mais pode receber uma comissão, sem custo extra para ti. As comissões são pagas pelas plataformas, não por esta app.</p>
+        <p><strong>Privacidade.</strong> A app regista apenas que uma oferta foi aberta (data, oferta e canal). Não guarda o teu nome, telefone nem email. A conta de administrador usa email e palavra-passe geridos pelo Supabase.</p>
+      </div>
+      <button type="button" class="btn btn-bloco" data-fechar="modalAviso">Fechar</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // A anon key é pública por desenho. A proteção real está nas políticas RLS do Supabase.
+    // Nunca coloques aqui a service_role key.
+    const SUPABASE_URL = 'https://fxwqzovfjzpvlmqnppaj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_ZY2HejsNaLF9bOlXPKCRWQ_Tq7qyn9E';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TABS = ['inicio', 'catalogo', 'links', 'textos', 'parceiros'];
+    const CANAIS = { whatsapp: 'WhatsApp', facebook: 'Facebook', instagram: 'Instagram', tiktok: 'TikTok', telegram: 'Telegram', outro: 'Outro' };
+    const ESTADOS_VENDA = { pendente: 'Pendente', confirmada: 'Confirmada', cancelada: 'Cancelada' };
+    const ESTADOS_PLAT = { por_pedir: 'Por pedir', pedido: 'Pedido enviado', aprovado: 'Aprovado', recusado: 'Recusado' };
+    const SUGESTOES_PLAT = ['Hotmart', 'Shein', 'COMPRAR.ao', 'KambaChat', 'Kubeta'];
+    const ALFABETO = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+    const SEM_IMAGEM = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">' +
+      '<rect width="400" height="200" fill="#eeeeee"/>' +
+      '<text x="200" y="106" font-family="sans-serif" font-size="16" fill="#888888" text-anchor="middle">Sem imagem</text></svg>'
+    );
+
+    let todasOfertas = [];
+    let filtroAtual = 'todos';
+    let sessaoAtual = null;
+    let pedidoAtual = 0;
+    let ofertaEmEdicao = null;
+    let vendaEmEdicao = null;
+    let plataformaEmEdicao = null;
+    let vendas = [];
+    let linksCache = [];
+    let plataformas = [];
+    let cliques7 = null;
+    let tabAtual = 'catalogo';
+    let moeda = 'AOA';
+    let cambio = 0;
+    let varianteTexto = 0;
+    let confirmacaoPendente = null;
+    let temporizadorPreview = null;
+    let temporizadorToast = null;
+    let eraAdmin = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- Utilitários ----------
+
+    // Cria elementos sem usar innerHTML: todo o texto entra como texto, nunca como HTML.
+    function el(tag, attrs, ...filhos) {
+      const e = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs || {})) {
+        if (v === undefined || v === null || v === false) continue;
+        if (k === 'text') e.textContent = v;
+        else e.setAttribute(k, v === true ? '' : v);
+      }
+      for (const f of filhos) if (f) e.appendChild(f);
+      return e;
+    }
+
+    // Só aceita links http(s). Bloqueia javascript:, data: e outros.
+    function urlSegura(valor) {
+      try {
+        const u = new URL(String(valor || '').trim());
+        return (u.protocol === 'https:' || u.protocol === 'http:') ? u.href : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function lerArmazenado(chave) {
+      try { return localStorage.getItem(chave); } catch (_) { return null; }
+    }
+
+    function guardarArmazenado(chave, valor) {
+      try { localStorage.setItem(chave, valor); } catch (_) { /* sem armazenamento: segue sem guardar */ }
+    }
+
+    function formatarKwanza(valor) {
+      const n = Number(valor);
+      return (Number.isFinite(n) ? n : 0).toLocaleString('pt-PT', { maximumFractionDigits: 0 }) + ' Kz';
+    }
+
+    function formatarUsd(valor) {
+      const n = Number(valor);
+      return 'US$ ' + (Number.isFinite(n) ? n : 0).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function normalizar(txt) {
+      return String(txt || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    function hojeISO() {
+      const d = new Date();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + m + '-' + dia;
+    }
+
+    function dataBR(iso) {
+      const p = String(iso || '').split('-');
+      return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : '';
+    }
+
+    function vazio(texto) {
+      return el('p', { class: 'vazio', text: texto });
+    }
+
+    function mensagem(id, texto, tipo) {
+      const m = $(id);
+      m.textContent = texto || '';
+      m.className = 'form-msg' + (tipo ? ' ' + tipo : '');
+    }
+
+    function toast(texto) {
+      const t = $('toast');
+      t.textContent = texto;
+      t.hidden = false;
+      clearTimeout(temporizadorToast);
+      temporizadorToast = setTimeout(() => { t.hidden = true; }, 2400);
+    }
+
+    async function copiar(texto) {
+      try {
+        await navigator.clipboard.writeText(texto);
+        toast('Copiado.');
+        return true;
+      } catch (_) { /* tenta o método antigo */ }
+      try {
+        const t = el('textarea', { class: 'oculto-fora', readonly: true });
+        t.value = texto;
+        document.body.appendChild(t);
+        t.select();
+        const ok = document.execCommand('copy');
+        t.remove();
+        toast(ok ? 'Copiado.' : 'Não foi possível copiar. Seleciona o texto e copia à mão.');
+        return ok;
+      } catch (_) {
+        toast('Não foi possível copiar. Seleciona o texto e copia à mão.');
+        return false;
+      }
+    }
+
+    function erroTabela(err) {
+      const msg = String((err && err.message) || '');
+      if ((err && err.code === 'PGRST205') || /schema cache|does not exist/i.test(msg)) {
+        return 'Faltam as tabelas novas no Supabase. Corre o ficheiro supabase-v2.sql no SQL Editor e volta a tentar.';
+      }
+      return 'Não foi possível carregar os dados. Tenta outra vez.';
+    }
+
+    function opcao(valor, texto) {
+      return el('option', { value: valor, text: texto });
+    }
+
+    function urlCurta(codigo) {
+      return location.origin + location.pathname + '?r=' + codigo;
+    }
+
+    function gerarCodigo(n) {
+      const b = new Uint8Array(n || 6);
+      crypto.getRandomValues(b);
+      return Array.from(b, (x) => ALFABETO[x % ALFABETO.length]).join('');
+    }
+
+    function nomeDoDestino(l) {
+      const o = l.oferta_id ? todasOfertas.find((x) => x.id === l.oferta_id) : null;
+      if (o) return o.titulo;
+      try { return new URL(l.destino).hostname; } catch (_) { return 'Link externo'; }
+    }
+
+    // ---------- Janelas ----------
+    function abrirModal(id) {
+      $(id).hidden = false;
+      const c = $(id).querySelector('.modal-content');
+      if (c) c.focus();
+    }
+
+    function fecharModal(id) {
+      $(id).hidden = true;
+    }
+
+    function pedirConfirmacao(titulo, texto, executar) {
+      confirmacaoPendente = executar;
+      $('tituloConfirmar').textContent = titulo;
+      $('textoConfirmar').textContent = texto;
+      mensagem('msgConfirmar', '');
+      abrirModal('modalConfirmar');
+    }
+
+    async function executarConfirmacao() {
+      if (!confirmacaoPendente) return;
+      const btn = $('btnConfirmar');
+      btn.disabled = true;
+      mensagem('msgConfirmar', 'A processar...');
+      let r;
+      try { r = await confirmacaoPendente(); } catch (e) { console.error(e); r = { ok: false }; }
+      btn.disabled = false;
+      if (!r || !r.ok) {
+        mensagem('msgConfirmar', (r && r.msg) || 'Não foi possível concluir. Tenta outra vez.', 'erro');
+        return;
+      }
+      confirmacaoPendente = null;
+      fecharModal('modalConfirmar');
+    }
+
+    // .select() devolve as linhas apagadas. Se vier vazio, o Supabase bloqueou a ação sem dar erro.
+    async function apagarLinha(tabela, coluna, valor) {
+      const { data, error } = await sb.from(tabela).delete().eq(coluna, valor).select(coluna);
+      if (error || !data || data.length === 0) {
+        if (error) console.error(error);
+        return { ok: false, msg: 'Não foi possível remover. A conta não tem permissão ou o item já foi removido.' };
+      }
+      return { ok: true };
+    }
+
+    // ---------- Sessão e navegação ----------
+    function aplicarModo() {
+      const admin = !!sessaoAtual;
+      document.body.classList.toggle('admin', admin);
+      $('navInferior').hidden = !admin;
+      $('btnNovaOferta').hidden = !admin;
+      $('btnAdmin').textContent = admin ? 'Sair' : 'Entrar';
+      if (!admin && tabAtual !== 'catalogo') mostrarTab('catalogo');
+    }
+
+    function mostrarTab(nome) {
+      if (!sessaoAtual || TABS.indexOf(nome) < 0) nome = 'catalogo';
+      tabAtual = nome;
+      TABS.forEach((t) => { $('tab-' + t).hidden = (t !== nome); });
+      document.querySelectorAll('.nav-btn').forEach((b) => {
+        const ativo = b.dataset.tab === nome;
+        b.classList.toggle('ativo', ativo);
+        b.setAttribute('aria-current', ativo ? 'page' : 'false');
+      });
+      window.scrollTo(0, 0);
+      if (nome === 'inicio') carregarPainel();
+      else if (nome === 'links') carregarLinks();
+      else if (nome === 'textos') prepararTextos();
+      else if (nome === 'parceiros') carregarPlataformas();
+    }
+
+    async function entrar(event) {
+      event.preventDefault();
+      const email = $('loginEmail').value.trim();
+      const senha = $('loginSenha').value;
+      if (!email || !senha) {
+        mensagem('msgLogin', 'Preenche o email e a palavra-passe.', 'erro');
+        return;
+      }
+      const btn = $('btnEntrar');
+      btn.disabled = true;
+      mensagem('msgLogin', 'A entrar...');
+      try {
+        const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+        if (error) throw error;
+        $('formLogin').reset();
+        mensagem('msgLogin', '');
+        fecharModal('modalLogin');
+      } catch (err) {
+        mensagem('msgLogin', 'Email ou palavra-passe incorretos.', 'erro');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function sair() {
+      await sb.auth.signOut();
+    }
+
+    // ---------- Catálogo ----------
+    function mostrarEstado(texto, comRetentar) {
+      const caixa = el('div', { class: 'status-msg' }, el('p', { text: texto }));
+      if (comRetentar) {
+        const b = el('button', { type: 'button', class: 'btn', text: 'Tentar outra vez' });
+        b.addEventListener('click', carregarOfertas);
+        caixa.appendChild(b);
+      }
+      $('listaOfertas').replaceChildren(caixa);
+    }
+
+    async function carregarOfertas() {
+      const pedido = ++pedidoAtual;
+      mostrarEstado('A carregar ofertas...');
+      try {
+        let query = sb
+          .from('ofertas')
+          .select('id,titulo,descricao,preco_kz,tipo,categoria,plataforma_origem,imagem_url,link_afiliado,criado_em,ativo,cliques')
+          .order('criado_em', { ascending: false })
+          .limit(200);
+        // Visitantes só veem ofertas ativas. A conta de administrador vê também as ocultas.
+        if (!sessaoAtual) query = query.eq('ativo', true);
+
+        const { data, error } = await query;
+        if (pedido !== pedidoAtual) return;
+        if (error) throw error;
+
+        todasOfertas = data || [];
+        filtrarLocalmente();
+        if (sessaoAtual && tabAtual === 'inicio') renderPainel();
+      } catch (err) {
+        if (pedido !== pedidoAtual) return;
+        console.error(err);
+        mostrarEstado('Não foi possível carregar as ofertas. Verifica a ligação à internet.', true);
+      }
+    }
+
+    function criarCartao(oferta) {
+      const digital = oferta.tipo === 'digital';
+
+      const img = el('img', { alt: oferta.titulo || 'Oferta', loading: 'lazy', referrerpolicy: 'no-referrer' });
+      img.src = urlSegura(oferta.imagem_url) || SEM_IMAGEM;
+      img.addEventListener('error', () => { img.src = SEM_IMAGEM; }, { once: true });
+
+      const tag = el('span', {
+        class: 'tag-tipo ' + (digital ? 'tag-digital' : 'tag-fisico'),
+        text: (digital ? 'DIGITAL' : 'FÍSICO') + ' • ' + (oferta.plataforma_origem || '')
+      });
+
+      const link = urlSegura(oferta.link_afiliado);
+      let acao;
+      if (link) {
+        acao = el('a', { class: 'btn', href: link, target: '_blank', rel: 'noopener noreferrer sponsored', text: 'Aproveitar' });
+        acao.addEventListener('click', () => registarClique(oferta.id));
+      } else {
+        acao = el('button', { type: 'button', class: 'btn', disabled: true, text: 'Indisponível' });
+      }
+
+      const corpo = el('div', { class: 'card-body' },
+        el('div', { class: 'categoria', text: oferta.categoria || '' }),
+        el('div', { class: 'titulo', text: oferta.titulo || '' }),
+        el('div', { class: 'descricao', text: oferta.descricao || '' }),
+        el('div', { class: 'card-footer' },
+          el('div', { class: 'preco', text: formatarKwanza(oferta.preco_kz) }),
+          acao
+        )
+      );
+
+      if (sessaoAtual) {
+        const bEditar = el('button', { type: 'button', class: 'btn-peq', text: 'Editar' });
+        bEditar.addEventListener('click', () => abrirFormOferta(oferta));
+        const bOcultar = el('button', { type: 'button', class: 'btn-peq', text: oferta.ativo === false ? 'Mostrar' : 'Ocultar' });
+        bOcultar.addEventListener('click', () => alternarAtivo(oferta, bOcultar));
+        const bRemover = el('button', { type: 'button', class: 'btn-peq perigo', text: 'Remover' });
+        bRemover.addEventListener('click', () => pedirRemocaoOferta(oferta));
+        corpo.appendChild(el('div', { class: 'admin-acoes' }, bEditar, bOcultar, bRemover));
+      }
+
+      const oculta = oferta.ativo === false;
+      return el('article', { class: 'card' + (oculta ? ' oculta' : '') },
+        el('div', { class: 'card-img-wrapper' }, img, tag, oculta ? el('span', { class: 'tag-oculta', text: 'Oculta' }) : null),
+        corpo
+      );
+    }
+
+    function filtrarLocalmente() {
+      const termo = normalizar($('campoBusca').value);
+      const filtradas = todasOfertas.filter((o) =>
+        (filtroAtual === 'todos' || o.tipo === filtroAtual) &&
+        (!termo ||
+          normalizar(o.titulo).includes(termo) ||
+          normalizar(o.categoria).includes(termo) ||
+          normalizar(o.plataforma_origem).includes(termo))
+      );
+      if (filtradas.length === 0) {
+        mostrarEstado(todasOfertas.length === 0 ? 'Ainda não há ofertas publicadas.' : 'Nenhuma oferta encontrada.');
+        return;
+      }
+      $('listaOfertas').replaceChildren(...filtradas.map(criarCartao));
+    }
+
+    function mudarFiltro(tipo, botao) {
+      filtroAtual = tipo;
+      document.querySelectorAll('.chip[data-tipo]').forEach((c) => {
+        c.classList.remove('active');
+        c.setAttribute('aria-pressed', 'false');
+      });
+      botao.classList.add('active');
+      botao.setAttribute('aria-pressed', 'true');
+      filtrarLocalmente();
+    }
+
+    // Regista o clique sem atrasar a abertura do link. Falhar aqui não afeta o utilizador.
+    function registarClique(id) {
+      try {
+        Promise.resolve(sb.rpc('registar_clique', { p_oferta: id, p_canal: 'vitrine' }))
+          .then(({ error }) => {
+            if (!error) return null;
+            // Base de dados ainda sem a função nova: usa a antiga.
+            return sb.rpc('incrementar_clique', { oferta_id: id });
+          })
+          .catch((e) => console.warn('Clique não registado:', e));
+      } catch (e) {
+        console.warn('Clique não registado:', e);
+      }
+    }
+
+    // ---------- Oferta: criar, editar, ocultar, remover ----------
+    function abrirFormOferta(oferta) {
+      ofertaEmEdicao = oferta ? oferta.id : null;
+      $('formOferta').reset();
+      mensagem('msgOferta', '');
+      $('tituloOferta').textContent = oferta ? 'Editar Oferta' : 'Nova Oferta na Vitrine';
+      $('btnPublicar').textContent = oferta ? 'Guardar alterações' : 'Publicar Oferta';
+      if (oferta) {
+        $('of_titulo').value = oferta.titulo || '';
+        $('of_descricao').value = oferta.descricao || '';
+        $('of_preco').value = oferta.preco_kz;
+        $('of_tipo').value = oferta.tipo === 'digital' ? 'digital' : 'fisico';
+        $('of_categoria').value = oferta.categoria || '';
+        $('of_plataforma').value = oferta.plataforma_origem || '';
+        $('of_imagem').value = oferta.imagem_url || '';
+        $('of_link').value = oferta.link_afiliado || '';
+      }
+      atualizarPreviewImagem();
+      abrirModal('modalOferta');
+    }
+
+    async function salvarOferta(event) {
+      event.preventDefault();
+
+      const titulo = $('of_titulo').value.trim();
+      const descricao = $('of_descricao').value.trim();
+      const preco = Number($('of_preco').value);
+      const tipo = $('of_tipo').value;
+      const categoria = $('of_categoria').value.trim();
+      const plataforma = $('of_plataforma').value.trim();
+      const imagem = urlSegura($('of_imagem').value);
+      const link = urlSegura($('of_link').value);
+
+      if (!titulo || titulo.length > 120) return mensagem('msgOferta', 'O título é obrigatório (máximo 120 caracteres).', 'erro');
+      if (descricao.length > 500) return mensagem('msgOferta', 'A descrição tem no máximo 500 caracteres.', 'erro');
+      if (!Number.isFinite(preco) || preco < 0 || preco >= 100000000) return mensagem('msgOferta', 'Indica um preço válido em Kwanzas.', 'erro');
+      if (tipo !== 'fisico' && tipo !== 'digital') return mensagem('msgOferta', 'Escolhe o tipo de oferta.', 'erro');
+      if (!categoria || !plataforma) return mensagem('msgOferta', 'Preenche a categoria e a plataforma.', 'erro');
+      if (!imagem || !imagem.startsWith('https://')) return mensagem('msgOferta', 'O link da imagem tem de começar por https://.', 'erro');
+      if (!link) return mensagem('msgOferta', 'O link de afiliado tem de começar por http:// ou https://.', 'erro');
+
+      const btn = $('btnPublicar');
+      const editando = ofertaEmEdicao;
+      btn.disabled = true;
+      mensagem('msgOferta', editando ? 'A guardar...' : 'A publicar...');
+
+      const campos = {
+        titulo, descricao, preco_kz: preco, tipo, categoria,
+        plataforma_origem: plataforma, imagem_url: imagem, link_afiliado: link
+      };
+
+      let error = null;
+      let afetadas = 1;
+      if (editando) {
+        const r = await sb.from('ofertas').update(campos).eq('id', editando).select('id');
+        error = r.error;
+        afetadas = r.data ? r.data.length : 0;
+      } else {
+        const r = await sb.from('ofertas').insert([{ ...campos, ativo: true }]);
+        error = r.error;
+      }
+      btn.disabled = false;
+
+      if (error || afetadas === 0) {
+        if (error) console.error(error);
+        const semPermissao = !error || error.code === '42501' || /row-level security/i.test(error.message || '');
+        mensagem('msgOferta',
+          semPermissao
+            ? 'Esta conta não tem permissão para esta ação, ou a oferta já não existe. Confirma que a conta foi adicionada como administradora.'
+            : 'Não foi possível guardar. Tenta outra vez.',
+          'erro');
+        return;
+      }
+
+      if (editando) {
+        ofertaEmEdicao = null;
+        fecharModal('modalOferta');
+      } else {
+        $('formOferta').reset();
+        atualizarPreviewImagem();
+        mensagem('msgOferta', 'Oferta publicada.', 'ok');
+      }
+      carregarOfertas();
+    }
+
+    async function alternarAtivo(oferta, botao) {
+      const novoEstado = oferta.ativo === false;
+      botao.disabled = true;
+      const { data, error } = await sb.from('ofertas').update({ ativo: novoEstado }).eq('id', oferta.id).select('id');
+      if (error || !data || data.length === 0) {
+        if (error) console.error(error);
+        botao.textContent = 'Sem permissão';
+        return;
+      }
+      carregarOfertas();
+    }
+
+    function pedirRemocaoOferta(oferta) {
+      pedirConfirmacao(
+        'Remover oferta?',
+        'Vais remover "' + (oferta.titulo || '') + '". Isto não pode ser desfeito. Se só queres tirar a oferta da vitrine por agora, usa "Ocultar".',
+        async () => {
+          const r = await apagarLinha('ofertas', 'id', oferta.id);
+          if (r.ok) carregarOfertas();
+          return r;
+        }
+      );
+    }
+
+    // Miniatura do link da imagem, para ver se carrega antes de guardar.
+    function atualizarPreviewImagem() {
+      const caixa = $('prevImagem');
+      const img = $('prevImg');
+      const texto = $('prevTexto');
+      const url = urlSegura($('of_imagem').value);
+      if (!url) { caixa.hidden = true; return; }
+      caixa.hidden = false;
+      if (!url.startsWith('https://')) {
+        img.removeAttribute('src');
+        texto.textContent = 'O link da imagem tem de começar por https://.';
+        return;
+      }
+      texto.textContent = 'A testar a imagem...';
+      img.onload = () => { texto.textContent = 'A imagem carrega bem.'; };
+      img.onerror = () => {
+        texto.textContent = 'Esta imagem não carrega. Usa o endereço direto da foto: ao abrir o link sozinho, deve aparecer só a imagem.';
+      };
+      img.src = url;
+    }
+
+    // ---------- Início: painel e vendas ----------
+    async function carregarPainel() {
+      if (!sessaoAtual) return;
+      const desde = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      const [rv, rc] = await Promise.all([
+        sb.from('vendas')
+          .select('id,oferta_id,descricao,plataforma,comissao,moeda,estado,data_venda,criado_em')
+          .order('data_venda', { ascending: false })
+          .order('criado_em', { ascending: false })
+          .limit(500),
+        sb.from('cliques_log').select('id', { count: 'exact', head: true }).gte('criado_em', desde)
+      ]);
+      if (rv.error) {
+        console.error(rv.error);
+        vendas = [];
+        renderPainel(erroTabela(rv.error));
+        return;
+      }
+      vendas = rv.data || [];
+      cliques7 = rc.error ? null : (rc.count || 0);
+      renderPainel();
+    }
+
+    function somar(estado) {
+      let aoa = 0;
+      let usd = 0;
+      for (const v of vendas) {
+        if (v.estado !== estado) continue;
+        if (v.moeda === 'USD') usd += Number(v.comissao) || 0;
+        else aoa += Number(v.comissao) || 0;
+      }
+      return { aoa, usd };
+    }
+
+    // Soma as duas moedas na moeda escolhida. Sem câmbio, só soma o que já está nessa moeda.
+    function converter(t) {
+      if (moeda === 'AOA') {
+        const incompleto = t.usd > 0 && !(cambio > 0);
+        const total = t.aoa + (cambio > 0 ? t.usd * cambio : 0);
+        return { texto: formatarKwanza(total) + (incompleto ? '*' : ''), incompleto };
+      }
+      const incompleto = t.aoa > 0 && !(cambio > 0);
+      const total = t.usd + (cambio > 0 ? t.aoa / cambio : 0);
+      return { texto: formatarUsd(total) + (incompleto ? '*' : ''), incompleto };
+    }
+
+    function renderPainel(erro) {
+      const confirmadas = vendas.filter((v) => v.estado === 'confirmada');
+      const rec = converter(somar('confirmada'));
+      const pen = converter(somar('pendente'));
+      const totalCliques = todasOfertas.reduce((s, o) => s + (Number(o.cliques) || 0), 0);
+
+      $('pnComissoes').textContent = erro ? '—' : rec.texto;
+      $('pnPendentes').textContent = erro ? '' : 'Pendentes: ' + pen.texto;
+      $('pnCliques').textContent = totalCliques.toLocaleString('pt-PT');
+      $('pnCliques7').textContent = cliques7 === null ? '—' : cliques7.toLocaleString('pt-PT');
+      $('pnVendas').textContent = erro ? '—' : String(confirmadas.length);
+      $('pnNotaCambio').hidden = !!erro || !(rec.incompleto || pen.incompleto);
+
+      document.querySelectorAll('.seg-btn').forEach((b) => {
+        const ativo = b.dataset.moeda === moeda;
+        b.classList.toggle('ativo', ativo);
+        b.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+      });
+      if (document.activeElement !== $('inCambio')) $('inCambio').value = cambio > 0 ? String(cambio) : '';
+
+      const lista = $('listaVendas');
+      if (erro) {
+        lista.replaceChildren(vazio(erro));
+      } else if (vendas.length === 0) {
+        lista.replaceChildren(vazio('Ainda não registaste vendas. Quando uma plataforma te pagar uma comissão, regista-a aqui.'));
+      } else {
+        lista.replaceChildren(...vendas.slice(0, 8).map((v) => {
+          const b = el('button', { type: 'button', class: 'item' },
+            el('span', { class: 'item-corpo' },
+              el('span', { class: 'item-titulo', text: v.descricao }),
+              el('span', { class: 'item-sub', text: v.plataforma + ' • ' + dataBR(v.data_venda) })
+            ),
+            el('span', { class: 'item-dir' },
+              el('span', { class: 'valor', text: (v.moeda === 'USD' ? formatarUsd(v.comissao) : formatarKwanza(v.comissao)) }),
+              el('span', { class: 'badge ' + v.estado, text: ESTADOS_VENDA[v.estado] || v.estado })
+            )
+          );
+          b.addEventListener('click', () => abrirFormVenda(v));
+          return b;
+        }));
+      }
+
+      const top = todasOfertas.filter((o) => (Number(o.cliques) || 0) > 0)
+        .sort((a, b) => (Number(b.cliques) || 0) - (Number(a.cliques) || 0)).slice(0, 5);
+      $('listaTop').replaceChildren(...(top.length === 0
+        ? [vazio('Ainda não há cliques registados nas ofertas.')]
+        : top.map((o) => el('div', { class: 'item' },
+            el('span', { class: 'item-corpo' },
+              el('span', { class: 'item-titulo', text: o.titulo }),
+              el('span', { class: 'item-sub', text: o.plataforma_origem || '' })
+            ),
+            el('span', { class: 'item-dir' }, el('span', { class: 'valor', text: (Number(o.cliques) || 0).toLocaleString('pt-PT') + ' cliques' }))
+          ))));
+    }
+
+    function mudarMoeda(nova) {
+      moeda = nova === 'USD' ? 'USD' : 'AOA';
+      guardarArmazenado('rm_moeda', moeda);
+      renderPainel();
+    }
+
+    function mudarCambio() {
+      const n = Number($('inCambio').value);
+      cambio = Number.isFinite(n) && n > 0 ? n : 0;
+      guardarArmazenado('rm_cambio', String(cambio));
+      renderPainel();
+    }
+
+    function popularOfertas(select, rotuloVazio) {
+      select.replaceChildren(opcao('', rotuloVazio),
+        ...todasOfertas.map((o) => opcao(o.id, o.titulo + (o.ativo === false ? ' (oculta)' : ''))));
+    }
+
+    function abrirFormVenda(v) {
+      vendaEmEdicao = v ? v.id : null;
+      $('formVenda').reset();
+      popularOfertas($('vd_oferta'), 'Sem oferta ligada');
+      mensagem('msgVenda', '');
+      $('tituloVenda').textContent = v ? 'Editar venda' : 'Registar venda';
+      $('btnGuardarVenda').textContent = v ? 'Guardar alterações' : 'Guardar venda';
+      $('btnRemoverVenda').hidden = !v;
+      if (v) {
+        $('vd_oferta').value = v.oferta_id || '';
+        $('vd_descricao').value = v.descricao || '';
+        $('vd_plataforma').value = v.plataforma || '';
+        $('vd_comissao').value = v.comissao;
+        $('vd_moeda').value = v.moeda === 'USD' ? 'USD' : 'AOA';
+        $('vd_estado').value = v.estado || 'pendente';
+        $('vd_data').value = v.data_venda || hojeISO();
+      } else {
+        $('vd_moeda').value = moeda;
+        $('vd_estado').value = 'pendente';
+        $('vd_data').value = hojeISO();
+      }
+      abrirModal('modalVenda');
+    }
+
+    async function salvarVenda(event) {
+      event.preventDefault();
+      const descricao = $('vd_descricao').value.trim();
+      const plataforma = $('vd_plataforma').value.trim();
+      const comissao = Number($('vd_comissao').value);
+      const moedaV = $('vd_moeda').value;
+      const estado = $('vd_estado').value;
+      const data = $('vd_data').value;
+      const ofertaId = $('vd_oferta').value || null;
+
+      if (!descricao || descricao.length > 120) return mensagem('msgVenda', 'Indica o produto (máximo 120 caracteres).', 'erro');
+      if (!plataforma || plataforma.length > 60) return mensagem('msgVenda', 'Indica a plataforma.', 'erro');
+      if (!Number.isFinite(comissao) || comissao < 0 || comissao >= 1e12 || $('vd_comissao').value === '') return mensagem('msgVenda', 'Indica um valor de comissão válido.', 'erro');
+      if (moedaV !== 'AOA' && moedaV !== 'USD') return mensagem('msgVenda', 'Escolhe a moeda.', 'erro');
+      if (!ESTADOS_VENDA[estado]) return mensagem('msgVenda', 'Escolhe o estado.', 'erro');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return mensagem('msgVenda', 'Indica a data da venda.', 'erro');
+
+      const campos = { oferta_id: ofertaId, descricao, plataforma, comissao, moeda: moedaV, estado, data_venda: data };
+      const btn = $('btnGuardarVenda');
+      const editando = vendaEmEdicao;
+      btn.disabled = true;
+      mensagem('msgVenda', 'A guardar...');
+
+      let error = null;
+      let afetadas = 1;
+      if (editando) {
+        const r = await sb.from('vendas').update(campos).eq('id', editando).select('id');
+        error = r.error;
+        afetadas = r.data ? r.data.length : 0;
+      } else {
+        const r = await sb.from('vendas').insert([campos]);
+        error = r.error;
+      }
+      btn.disabled = false;
+
+      if (error || afetadas === 0) {
+        if (error) console.error(error);
+        mensagem('msgVenda', error ? erroTabela(error) : 'Esta conta não tem permissão, ou a venda já não existe.', 'erro');
+        return;
+      }
+      vendaEmEdicao = null;
+      fecharModal('modalVenda');
+      toast('Venda guardada.');
+      carregarPainel();
+    }
+
+    function pedirRemocaoVenda() {
+      const id = vendaEmEdicao;
+      if (!id) return;
+      fecharModal('modalVenda');
+      pedirConfirmacao('Remover venda?', 'Esta venda deixa de contar nos totais. Isto não pode ser desfeito.', async () => {
+        const r = await apagarLinha('vendas', 'id', id);
+        if (r.ok) carregarPainel();
+        return r;
+      });
+    }
+
+    // ---------- Links curtos ----------
+    function atualizarOpcoesDestino() {
+      const sel = $('lk_oferta');
+      const atual = sel.value;
+      sel.replaceChildren(opcao('', 'Outro link (escrever o endereço)'),
+        ...todasOfertas.filter((o) => o.ativo !== false).map((o) => opcao(o.id, o.titulo)));
+      sel.value = todasOfertas.some((o) => o.id === atual) ? atual : (todasOfertas.length ? todasOfertas.find((o) => o.ativo !== false)?.id || '' : '');
+      $('grpLkUrl').hidden = sel.value !== '';
+    }
+
+    async function carregarLinks(silencioso) {
+      if (!sessaoAtual) return;
+      atualizarOpcoesDestino();
+      const { data, error } = await sb.from('links')
+        .select('codigo,destino,campanha,canal,oferta_id,cliques,criado_em')
+        .order('criado_em', { ascending: false })
+        .limit(100);
+      if (error) {
+        console.error(error);
+        linksCache = [];
+        if (!silencioso) $('listaLinks').replaceChildren(vazio(erroTabela(error)));
+        return;
+      }
+      linksCache = data || [];
+      renderLinks();
+    }
+
+    function renderLinks() {
+      const lista = $('listaLinks');
+      if (linksCache.length === 0) {
+        lista.replaceChildren(vazio('Ainda não criaste links. Cria um por canal ou grupo para ver de onde vêm os cliques.'));
+        return;
+      }
+      lista.replaceChildren(...linksCache.map((l) => {
+        const bCopiar = el('button', { type: 'button', class: 'btn-peq', text: 'Copiar' });
+        bCopiar.addEventListener('click', () => copiar(urlCurta(l.codigo)));
+        const bRemover = el('button', { type: 'button', class: 'btn-peq perigo', text: 'Remover' });
+        bRemover.addEventListener('click', () => pedirConfirmacao(
+          'Remover link?',
+          'O link "' + l.campanha + '" deixa de funcionar. Quem o tiver partilhado vai ver que já não está ativo.',
+          async () => {
+            const r = await apagarLinha('links', 'codigo', l.codigo);
+            if (r.ok) carregarLinks();
+            return r;
+          }
+        ));
+        return el('div', { class: 'item item-linha' },
+          el('span', { class: 'item-corpo', style: 'width:100%' },
+            el('span', { class: 'item-titulo', text: l.campanha }),
+            el('span', { class: 'item-sub', text: (CANAIS[l.canal] || l.canal) + ' • ' + nomeDoDestino(l) + ' • ' + (Number(l.cliques) || 0) + ' cliques' }),
+            el('code', { class: 'url-curta', text: urlCurta(l.codigo) })
+          ),
+          el('div', { class: 'item-acoes' }, bCopiar, bRemover)
+        );
+      }));
+    }
+
+    async function criarLink(event) {
+      event.preventDefault();
+      const ofertaId = $('lk_oferta').value;
+      const oferta = ofertaId ? todasOfertas.find((o) => o.id === ofertaId) : null;
+      const destino = oferta ? urlSegura(oferta.link_afiliado) : urlSegura($('lk_url').value);
+      const campanha = $('lk_campanha').value.trim();
+      const canal = $('lk_canal').value;
+
+      if (!destino) return mensagem('msgLink', oferta ? 'Esta oferta não tem um link de afiliado válido.' : 'O endereço de destino tem de começar por http:// ou https://.', 'erro');
+      if (!campanha || campanha.length > 60) return mensagem('msgLink', 'Indica o nome da campanha (máximo 60 caracteres).', 'erro');
+      if (!CANAIS[canal]) return mensagem('msgLink', 'Escolhe o canal.', 'erro');
+
+      const btn = $('btnCriarLink');
+      btn.disabled = true;
+      mensagem('msgLink', 'A criar...');
+
+      let erro = null;
+      let criado = null;
+      for (let i = 0; i < 4; i++) {
+        const codigo = gerarCodigo(6);
+        const r = await sb.from('links').insert([{ codigo, destino, campanha, canal, oferta_id: oferta ? oferta.id : null }]);
+        if (!r.error) { criado = codigo; erro = null; break; }
+        erro = r.error;
+        if (r.error.code !== '23505') break; // só repete se o código já existir
+      }
+      btn.disabled = false;
+
+      if (!criado) {
+        if (erro) console.error(erro);
+        mensagem('msgLink', erro ? erroTabela(erro) : 'Não foi possível criar o link.', 'erro');
+        return;
+      }
+      $('lk_campanha').value = '';
+      $('lk_url').value = '';
+      mensagem('msgLink', 'Link criado.', 'ok');
+      copiar(urlCurta(criado));
+      carregarLinks();
+    }
+
+    // ---------- Textos ----------
+    function prepararTextos() {
+      const sel = $('tx_oferta');
+      const atual = sel.value;
+      sel.replaceChildren(opcao('', 'Escrever à mão'),
+        ...todasOfertas.filter((o) => o.ativo !== false).map((o) => opcao(o.id, o.titulo)));
+      sel.value = todasOfertas.some((o) => o.id === atual) ? atual : '';
+      $('grpTxManual').hidden = sel.value !== '';
+      atualizarOpcoesLinkTexto();
+      carregarLinks(true).then(atualizarOpcoesLinkTexto);
+    }
+
+    function atualizarOpcoesLinkTexto() {
+      const sel = $('tx_link');
+      const atual = sel.value;
+      const ofertaId = $('tx_oferta').value;
+      const opcoes = [opcao('app', 'Endereço da Rende Mais')];
+      if (ofertaId) opcoes.push(opcao('direto', 'Link de afiliado direto da oferta'));
+      linksCache.forEach((l) => opcoes.push(opcao('l:' + l.codigo, l.campanha + ' (' + (CANAIS[l.canal] || l.canal) + ')')));
+      sel.replaceChildren(...opcoes);
+      sel.value = opcoes.some((o) => o.value === atual) ? atual : 'app';
+    }
+
+    function linkEscolhido() {
+      const v = $('tx_link').value;
+      if (v === 'direto') {
+        const o = todasOfertas.find((x) => x.id === $('tx_oferta').value);
+        return o ? o.link_afiliado : '';
+      }
+      if (v.indexOf('l:') === 0) return urlCurta(v.slice(2));
+      return location.origin + location.pathname;
+    }
+
+    function montarTexto() {
+      const o = $('tx_oferta').value ? todasOfertas.find((x) => x.id === $('tx_oferta').value) : null;
+      const titulo = o ? o.titulo : $('tx_titulo').value.trim();
+      if (!titulo) { toast('Escolhe um produto ou escreve o nome.'); return null; }
+      const precoNum = o ? Number(o.preco_kz) : Number($('tx_preco').value);
+      const preco = Number.isFinite(precoNum) && precoNum > 0 ? formatarKwanza(precoNum) : '';
+      const desc = o ? (o.descricao || '') : '';
+      const canal = $('tx_canal').value;
+      const estilo = $('tx_estilo').value;
+      const link = linkEscolhido();
+      const negrito = (t) => (canal === 'whatsapp' ? '*' + t + '*' : t);
+      const aberturas = {
+        oferta: ['Oferta na Rende Mais', 'Encontrei esta oferta', 'Olha esta oferta'],
+        dica: ['Dica antes de comprar', 'Dica rápida', 'Uma dica útil'],
+        pergunta: ['Já pensaste nisto?', 'Procuras uma boa opção?', 'Estás à procura disto?']
+      };
+      const abertura = aberturas[estilo][varianteTexto % 3];
+      const linhas = [];
+      if (estilo === 'oferta') {
+        linhas.push(abertura + ':');
+        linhas.push(negrito(titulo));
+        if (desc) linhas.push(desc);
+        if (preco) linhas.push('Preço: ' + preco);
+      } else if (estilo === 'dica') {
+        linhas.push(abertura + ': compara preço, entrega e avaliações da loja.');
+        linhas.push('Esta é uma das opções que partilho na Rende Mais:');
+        linhas.push(negrito(titulo) + (preco ? ' (' + preco + ')' : ''));
+        if (desc) linhas.push(desc);
+      } else {
+        linhas.push(abertura);
+        linhas.push(negrito(titulo) + (preco ? ' por ' + preco : ''));
+        if (desc) linhas.push(desc);
+        linhas.push('Se tiveres dúvidas, responde a esta mensagem.');
+      }
+      linhas.push('');
+      linhas.push(canal === 'instagram' || canal === 'tiktok' ? 'Link na minha bio.' : 'Vê aqui: ' + link);
+      linhas.push('');
+      linhas.push('Aviso: posso receber uma comissão se comprares por este link, sem custo extra para ti.');
+      return linhas.join('\n');
+    }
+
+    function gerarTexto() {
+      const t = montarTexto();
+      if (t === null) return;
+      $('txSaida').value = t;
+      $('boxTexto').hidden = false;
+    }
+
+    // ---------- Parceiros ----------
+    async function carregarPlataformas() {
+      if (!sessaoAtual) return;
+      const { data, error } = await sb.from('plataformas')
+        .select('id,nome,estado,comissao,link_cadastro,notas,criado_em')
+        .order('criado_em', { ascending: true })
+        .limit(100);
+      if (error) {
+        console.error(error);
+        plataformas = [];
+        $('listaPlataformas').replaceChildren(vazio(erroTabela(error)));
+        return;
+      }
+      plataformas = data || [];
+      renderPlataformas();
+    }
+
+    function renderPlataformas() {
+      const lista = $('listaPlataformas');
+      if (plataformas.length === 0) {
+        lista.replaceChildren(vazio('Ainda não adicionaste plataformas. Adiciona as que queres usar e acompanha o estado de cada pedido.'));
+        return;
+      }
+      lista.replaceChildren(...plataformas.map((p) => {
+        const n = todasOfertas.filter((o) => normalizar(o.plataforma_origem) === normalizar(p.nome)).length;
+        const sub = [p.comissao, n + (n === 1 ? ' oferta' : ' ofertas')].filter(Boolean).join(' • ');
+        const bEditar = el('button', { type: 'button', class: 'btn-peq', text: 'Editar' });
+        bEditar.addEventListener('click', () => abrirFormPlataforma(p));
+        const acoes = el('div', { class: 'item-acoes' }, bEditar);
+        const href = urlSegura(p.link_cadastro);
+        if (href) acoes.appendChild(el('a', { class: 'btn-peq', href, target: '_blank', rel: 'noopener noreferrer', style: 'text-align:center;text-decoration:none', text: 'Abrir site' }));
+        const bRemover = el('button', { type: 'button', class: 'btn-peq perigo', text: 'Remover' });
+        bRemover.addEventListener('click', () => pedirConfirmacao('Remover plataforma?', 'Vais remover "' + p.nome + '" da lista. As ofertas não são afetadas.', async () => {
+          const r = await apagarLinha('plataformas', 'id', p.id);
+          if (r.ok) carregarPlataformas();
+          return r;
+        }));
+        acoes.appendChild(bRemover);
+        return el('div', { class: 'item item-linha' },
+          el('span', { class: 'item-corpo', style: 'width:100%' },
+            el('span', { class: 'item-titulo', text: p.nome }),
+            el('span', { class: 'badge ' + p.estado, text: ESTADOS_PLAT[p.estado] || p.estado }),
+            el('span', { class: 'item-sub', text: sub }),
+            p.notas ? el('span', { class: 'item-sub', text: p.notas }) : null
+          ),
+          acoes
+        );
+      }));
+    }
+
+    function abrirFormPlataforma(p) {
+      plataformaEmEdicao = p ? p.id : null;
+      $('formPlataforma').reset();
+      mensagem('msgPlataforma', '');
+      $('tituloPlataforma').textContent = p ? 'Editar plataforma' : 'Adicionar plataforma';
+      if (p) {
+        $('pl_nome').value = p.nome || '';
+        $('pl_estado').value = p.estado || 'por_pedir';
+        $('pl_comissao').value = p.comissao || '';
+        $('pl_link').value = p.link_cadastro || '';
+        $('pl_notas').value = p.notas || '';
+      }
+      $('sugestoesPlat').hidden = !!p;
+      abrirModal('modalPlataforma');
+    }
+
+    async function salvarPlataforma(event) {
+      event.preventDefault();
+      const nome = $('pl_nome').value.trim();
+      const estado = $('pl_estado').value;
+      const comissao = $('pl_comissao').value.trim();
+      const linkTxt = $('pl_link').value.trim();
+      const link = linkTxt ? urlSegura(linkTxt) : null;
+      const notas = $('pl_notas').value.trim();
+
+      if (!nome || nome.length > 60) return mensagem('msgPlataforma', 'Indica o nome da plataforma.', 'erro');
+      if (!ESTADOS_PLAT[estado]) return mensagem('msgPlataforma', 'Escolhe o estado.', 'erro');
+      if (linkTxt && !link) return mensagem('msgPlataforma', 'O link tem de começar por http:// ou https://.', 'erro');
+
+      const campos = { nome, estado, comissao: comissao || null, link_cadastro: link, notas: notas || null };
+      const btn = $('btnGuardarPlataforma');
+      const editando = plataformaEmEdicao;
+      btn.disabled = true;
+      mensagem('msgPlataforma', 'A guardar...');
+
+      let error = null;
+      let afetadas = 1;
+      if (editando) {
+        const r = await sb.from('plataformas').update(campos).eq('id', editando).select('id');
+        error = r.error;
+        afetadas = r.data ? r.data.length : 0;
+      } else {
+        const r = await sb.from('plataformas').insert([campos]);
+        error = r.error;
+      }
+      btn.disabled = false;
+
+      if (error || afetadas === 0) {
+        if (error) console.error(error);
+        mensagem('msgPlataforma', error ? erroTabela(error) : 'Esta conta não tem permissão, ou a plataforma já não existe.', 'erro');
+        return;
+      }
+      plataformaEmEdicao = null;
+      fecharModal('modalPlataforma');
+      carregarPlataformas();
+    }
+
+    // ---------- Ligações ----------
+    function ligarEventos() {
+      $('btnAtualizar').addEventListener('click', () => {
+        carregarOfertas();
+        if (sessaoAtual) {
+          if (tabAtual === 'inicio') carregarPainel();
+          else if (tabAtual === 'links') carregarLinks();
+          else if (tabAtual === 'parceiros') carregarPlataformas();
+        }
+      });
+      $('btnAdmin').addEventListener('click', () => { if (sessaoAtual) sair(); else abrirModal('modalLogin'); });
+      $('btnAviso').addEventListener('click', () => abrirModal('modalAviso'));
+      $('btnNovaOferta').addEventListener('click', () => abrirFormOferta(null));
+      $('btnNovaVenda').addEventListener('click', () => abrirFormVenda(null));
+      $('btnNovaPlataforma').addEventListener('click', () => abrirFormPlataforma(null));
+      $('campoBusca').addEventListener('input', filtrarLocalmente);
+      $('formLogin').addEventListener('submit', entrar);
+      $('formOferta').addEventListener('submit', salvarOferta);
+      $('formVenda').addEventListener('submit', salvarVenda);
+      $('formLink').addEventListener('submit', criarLink);
+      $('formPlataforma').addEventListener('submit', salvarPlataforma);
+      $('btnRemoverVenda').addEventListener('click', pedirRemocaoVenda);
+      $('btnConfirmar').addEventListener('click', executarConfirmacao);
+      $('btnGerarTexto').addEventListener('click', () => { varianteTexto = 0; gerarTexto(); });
+      $('btnOutraVersao').addEventListener('click', () => { varianteTexto += 1; gerarTexto(); });
+      $('btnCopiarTexto').addEventListener('click', () => copiar($('txSaida').value));
+      $('btnCopiarLinkTx').addEventListener('click', () => copiar(linkEscolhido()));
+      $('inCambio').addEventListener('input', mudarCambio);
+
+      $('of_imagem').addEventListener('input', () => {
+        clearTimeout(temporizadorPreview);
+        temporizadorPreview = setTimeout(atualizarPreviewImagem, 500);
+      });
+      $('lk_oferta').addEventListener('change', () => { $('grpLkUrl').hidden = $('lk_oferta').value !== ''; });
+      $('tx_oferta').addEventListener('change', () => {
+        $('grpTxManual').hidden = $('tx_oferta').value !== '';
+        atualizarOpcoesLinkTexto();
+      });
+      $('vd_oferta').addEventListener('change', () => {
+        const o = todasOfertas.find((x) => x.id === $('vd_oferta').value);
+        if (!o) return;
+        if (!$('vd_descricao').value.trim()) $('vd_descricao').value = o.titulo || '';
+        if (!$('vd_plataforma').value.trim()) $('vd_plataforma').value = o.plataforma_origem || '';
+      });
+
+      document.querySelectorAll('.chip[data-tipo]').forEach((chip) =>
+        chip.addEventListener('click', () => mudarFiltro(chip.dataset.tipo, chip)));
+      document.querySelectorAll('.seg-btn').forEach((b) =>
+        b.addEventListener('click', () => mudarMoeda(b.dataset.moeda)));
+      document.querySelectorAll('.nav-btn').forEach((b) =>
+        b.addEventListener('click', () => mostrarTab(b.dataset.tab)));
+      document.querySelectorAll('[data-ir]').forEach((b) =>
+        b.addEventListener('click', () => mostrarTab(b.dataset.ir)));
+      document.querySelectorAll('[data-fechar]').forEach((b) =>
+        b.addEventListener('click', () => fecharModal(b.dataset.fechar)));
+      document.querySelectorAll('.modal').forEach((m) =>
+        m.addEventListener('click', (e) => { if (e.target === m) fecharModal(m.id); }));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.modal').forEach((m) => { m.hidden = true; });
+      });
+
+      $('sugestoesPlat').replaceChildren(...SUGESTOES_PLAT.map((nome) => {
+        const b = el('button', { type: 'button', class: 'chip', text: nome });
+        b.addEventListener('click', () => { $('pl_nome').value = nome; });
+        return b;
+      }));
+    }
+
+    // ---------- Arranque ----------
+    function iniciarApp() {
+      moeda = lerArmazenado('rm_moeda') === 'USD' ? 'USD' : 'AOA';
+      const c = Number(lerArmazenado('rm_cambio'));
+      cambio = Number.isFinite(c) && c > 0 ? c : 0;
+
+      ligarEventos();
+      aplicarModo();
+
+      // Mantém o estado da sessão. Dentro deste callback só se guarda estado, sem chamadas ao Supabase.
+      sb.auth.onAuthStateChange((_evento, sessao) => {
+        sessaoAtual = sessao;
+        const agoraAdmin = !!sessao;
+        if (agoraAdmin !== eraAdmin) {
+          eraAdmin = agoraAdmin;
+          // Adia as chamadas: dentro deste callback não se deve usar o Supabase.
+          setTimeout(() => {
+            aplicarModo();
+            carregarOfertas();
+            if (agoraAdmin) mostrarTab('inicio');
+          }, 0);
+        }
+      });
+
+      carregarOfertas();
+    }
+
+    // Link curto: ?r=codigo regista o clique e leva a pessoa à loja.
+    async function iniciarRedirecionamento(codigo) {
+      $('app').hidden = true;
+      $('ecraRedirecionar').hidden = false;
+      const falha = () => {
+        $('txtRedirecionar').textContent = 'Este link já não está ativo.';
+        $('lnkVoltar').hidden = false;
+      };
+      if (!/^[a-z0-9]{4,12}$/.test(codigo)) { falha(); return; }
+      try {
+        const { data, error } = await sb.rpc('abrir_link', { p_codigo: codigo });
+        const destino = urlSegura(data);
+        if (error || !destino) { falha(); return; }
+        location.replace(destino);
+      } catch (e) {
+        console.error(e);
+        falha();
+      }
+    }
+
+    const codigoLink = new URLSearchParams(location.search).get('r');
+    if (codigoLink !== null) iniciarRedirecionamento(codigoLink);
+    else iniciarApp();
+  })();
+  </script>
+</body>
+</html>
